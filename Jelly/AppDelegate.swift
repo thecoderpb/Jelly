@@ -13,24 +13,64 @@ import SwiftUI
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     var window: NSWindow!
-
+    private var popover : NSPopover!
+    private var statusBarItem: NSStatusItem!
+    private var buttonToggle = 0
+    
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Create the SwiftUI view that provides the window contents.
         let contentView = ContentView()
-            .frame(minWidth: 200,maxWidth: .infinity, minHeight: 400,maxHeight: .infinity)
-
-    
-        // Create the window and set the content view. 
-        window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 300),
-            styleMask: [.titled, .closable, .borderless],
-            backing: .buffered, defer: false)
-        window.center()
-        //window.setFrameAutosaveName("Main Window")
-        window.contentView = NSHostingView(rootView: contentView)
-        window.makeKeyAndOrderFront(nil)
+        
+        // Create the popover
+        let popover = NSPopover()
+        popover.contentSize = NSSize(width: 400, height: 400)
+        popover.behavior = .transient
+        popover.contentViewController = NSHostingController(rootView: contentView)
+        self.popover = popover
+        
+        
+        self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+        if let button = self.statusBarItem.button {
+             button.image = NSImage(named: "Left Chevron")
+             button.action = #selector(togglePopover(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        }
+        
+        
+        
+        
+            
     }
+    
+    // Create the status item
+    @objc func togglePopover(_ sender: AnyObject?) {
+        
+        let event = NSApp.currentEvent!
+        
+         if let button = self.statusBarItem.button {
+            if event.type == NSEvent.EventType.rightMouseUp{
+                if self.popover.isShown {
+                     self.popover.performClose(sender)
+                } else {
+                     self.popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+                }
+            } else if event.type == NSEvent.EventType.leftMouseUp{
+                if buttonToggle == 0{
+                    button.image = NSImage(named: "Right Chevron")
+                    buttonToggle = 1
+                
+                }else{
+                    button.image = NSImage(named: "Left Chevron")
+                    buttonToggle = 0
+                }
+                //change icon to right chevron
+                //hide icons
+            }
+              
+         }
+    }
+    
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
